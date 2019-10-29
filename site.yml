@@ -4,7 +4,7 @@
 - import_playbook: elevate_foreman_params.yaml
 
 - name: core configuration to all hosts
-  hosts: all:!foreman_hostcollection_appliances
+  hosts: "{{ chain_limit | default('all:!foreman_hostcollection_appliances') }}"
   become: yes
   become_user: root
 

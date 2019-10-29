@@ -4,7 +4,7 @@
 - import_playbook: elevate_foreman_params.yaml
 
 - name: ansible tower servers
-  hosts: foreman_hostgroup_tower
+  hosts: "{{ chain_limit | default('all') }}:&foreman_hostgroup_tower"
   become: yes
   become_user: root
   gather_facts: yes

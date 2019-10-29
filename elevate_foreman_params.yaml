@@ -2,7 +2,7 @@
 ---
 
 - name: elevate the priority on some foreman_params
-  hosts: all
+  hosts: "{{ chain_limit | default('all') }}"
   gather_facts: no
   become: no
 

@@ -1,0 +1,31 @@
+#!/usr/bin/ansible-playbook
+---
+
+- import_playbook: elevate_foreman_params.yaml
+
+- name: wait for all hosts to be online and responding
+  hosts: "{{ chain_limit | default('all') }}"
+  become: no
+  gather_facts: no
+
+  vars:
+    - wait_limit: 3600
+
+  tasks:
+    - name: "Wait {{ wait_limit }} seconds for the host to be active."
+      wait_for_connection:
+        delay: 0
+        sleep: 15
+        timeout: "{{ wait_limit }}"
+      register: _wait_build_time
+      tags:
+        - wait
+
+    - name: record build time
+      set_stats:
+        data:
+          build_time: "{{ _wait_build_time.elapsed }}"
+        per_host: yes
+      tags:
+        - wait
+
