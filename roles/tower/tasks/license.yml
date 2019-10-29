@@ -1,0 +1,65 @@
+---
+# tasks file for tower
+
+- name: install initial license
+  when: ansible_local['tower']['license_status'] == "none"
+  delegate_to: localhost
+  block:
+
+    - name: create local temp working directory
+      tempfile:
+        state: directory
+      become: no
+      register: tower_tmp_dir
+      check_mode: no
+      tags:
+        - tower
+        - license
+        - config
+
+    - name: fetch licenses from bucket
+      aws_s3:
+        aws_access_key: "{{ tower_s3_access_key }}"
+        aws_secret_key: "{{ tower_s3_secret_key }}"
+        bucket: "{{ tower_s3_keys_bucket }}"
+        object: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        mode: get
+      loop:
+        - src: "{{ inventory_hostname }}/tower_license.txt"
+          dest: "{{ tower_tmp_dir.path }}/license.txt"
+      become: no
+      check_mode: no
+      tags:
+        - tower
+        - license
+        - config
+
+    - name: ensure license is installed
+      uri:
+        url: "https://{{ ansible_fqdn }}/api/v2/config/"
+        method: POST
+        user: "admin"
+        password: "{{ tower_admin_password }}"
+        force_basic_auth: yes
+        body_format: json
+        body: "{{ lookup('file', tower_tmp_dir.path + '/license.txt') }}"
+        validate_certs: no
+        follow_redirects: yes
+      become: no
+      register: tower_lic_ret
+      changed_when: tower_lic_ret.status == 200
+      tags:
+        - tower
+        - license
+        - config
+
+    - name: remove temp working directory
+      file:
+        path: "{{ tower_tmp_dir.path }}"
+        state: absent
+      check_mode: no
+      tags:
+        - tower
+        - license
+        - config

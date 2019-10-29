@@ -1,0 +1,91 @@
+---
+# tasks file for tower
+
+- name: install tower
+  when: tower_version != ( ansible_local['tower']['installed_version'] | default('0') )
+  block:
+
+    - name: ensure tower install working directory exists
+      file:
+        path: /opt/tower
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+      tags:
+        - tower
+        - filesystem
+
+    - name: save working directory path
+      set_fact:
+        tower_tmp:
+          path: /opt/tower
+        cacheable: no
+      tags:
+        - tower
+        - filesystem
+
+
+    - name: ensure tower installer is downloaded
+      get_url:
+        url: "{{ tower_installer_repo }}/ansible-tower-setup-{{ tower_version }}.tar.gz"
+        dest: "{{ tower_tmp.path }}/ansible-tower-setup.tar.gz"
+      tags:
+        - tower
+        - packages
+
+    - name: ensure tower installer is extracted
+      unarchive:
+        src: "{{ tower_tmp.path }}/ansible-tower-setup.tar.gz"
+        dest: "{{ tower_tmp.path }}"
+        remote_src: yes
+      register: tower_extract
+      ignore_errors: "{{ ansible_check_mode }}"
+      tags:
+        - tower
+        - packages
+
+    - name: ensure inventory file has been created
+      template:
+        src: inventory.j2
+        dest: "{{ tower_tmp.path }}/ansible-tower-setup-{{ tower_version }}/inventory"
+        owner: root
+        group: root
+        mode: 0600
+      register: tower_inventory
+      tags:
+        - tower
+        - packages
+
+    - name: ensure tower has been installed
+      shell: |
+        umask 0022
+        ./setup.sh
+      args:
+        chdir: "{{ tower_tmp.path }}/ansible-tower-setup-{{ tower_version }}"
+      async: 3600
+      poll: 10
+      tags:
+        - tower
+        - packages
+        - install
+
+    - name: ensure custom facts directory exists
+      file:
+        state: directory
+        path: /etc/ansible/facts.d
+      tags:
+        - tower
+        - packages
+
+    - name: save installed tower version
+      template:
+        src: tower.fact.j2
+        dest: /etc/ansible/facts.d/tower.fact
+        owner: root
+        group: root
+        mode: 0755
+      tags:
+        - tower
+        - packages
+

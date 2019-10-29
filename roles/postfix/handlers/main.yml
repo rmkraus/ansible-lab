@@ -1,0 +1,14 @@
+---
+# handlers file for postfix
+- name: build sasl db
+  command: postmap /etc/postfix/sasl_passwd
+
+- name: restart postfix
+  service:
+    name: postfix
+    state: restarted
+
+- name: restart iptables
+  service:
+    name: iptables
+    state: restarted

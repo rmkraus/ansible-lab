@@ -1,0 +1,45 @@
+---
+# tasks file for ansible-deps
+
+- name: Ensure Ansible dependencies are installed (EL7)
+  yum:
+    name: libselinux-python
+    state: installed
+  when:
+    - ( ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7' ) or
+      ( ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7' )
+  tags:
+    - ansible-deps
+    - packages
+
+- name: Ensure Ansible dependencies are installed (EL6)
+  yum:
+    name: libselinux-python
+    state: installed
+  when:
+    - ( ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6' ) or
+      ( ansible_distribution == 'RedHat' and ansible_distribution_major_version == '6' )
+  tags:
+    - ansible-deps
+    - packages
+
+- name: Ensure Ansible dependencies are installed (Fedora)
+  yum:
+    name: python2-libselinux
+    state: installed
+  when:
+    - ansible_distribution == 'Fedora'
+  tags:
+    - ansible-deps
+    - packages
+
+- name: ensure ansible artifacts directory exists
+  file:
+    path: "{{ ansible_deps_artifacts }}"
+    owner: root
+    group: root
+    mode: '0700'
+    state: directory
+  tags:
+    - ansible-deps
+    - filesystem

@@ -1,0 +1,15 @@
+---
+# tasks file for root-user
+- name: Ensure root has a configured profile
+  template:
+    src: "{{ item }}.j2"
+    dest: "/root/.ssh/.{{ item }}"
+    owner: root
+    group: root
+    mode: 0600
+  with_items:
+    - bashrc
+    - bash_profile
+  tags:
+    - root-user
+    - config

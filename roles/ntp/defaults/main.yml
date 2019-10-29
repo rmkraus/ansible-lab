@@ -1,0 +1,5 @@
+---
+# defaults file for ntp
+ntp_daemon: ''
+ntp_servers:
+  - time.google.com

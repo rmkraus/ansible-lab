@@ -1,0 +1,82 @@
+---
+# tasks file for postfix
+- name: ensure postfix is installed
+  yum:
+    name: postfix
+    state: installed
+  tags:
+    - postfix
+    - packages
+
+- name: ensure sasl auth libraries are installed
+  yum:
+    name: cyrus-sasl,cyrus-sasl-plain,cyrus-sasl-md5
+    state: installed
+  when: postfix_smtp_sasl_auth_enable | bool
+  tags:
+    - postfix
+    - packages
+
+- name: ensure postfix is configured
+  template:
+    src: main.cf.j2
+    dest: /etc/postfix/main.cf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart postfix
+  tags:
+    - postfix
+    - config
+
+- name: ensure postfix sasl auth is configured
+  template:
+    src: sasl_passwd.j2
+    dest: /etc/postfix/sasl_passwd
+    owner: root
+    group: root
+    mode: 0600
+  notify:
+    - restart postfix
+    - build sasl db
+  tags:
+    - postfix
+    - config
+
+- name: ensure postfix is running and enabled
+  service:
+    name: postfix
+    state: started
+    enabled: yes
+  tags:
+    - postfix
+    - service
+
+- name: ensure firewalld allows smtp traffic
+  firewalld:
+    port: 25/tcp
+    state: enabled
+    permanent: yes
+    immediate: yes
+  when:
+    - postfix_inet_interfaces != 'localhost'
+    - ansible_distribution == 'Fedora' or
+      ( ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7' ) or
+      ( ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7' )
+  tags:
+    - postfix
+    - firewall
+
+- name: ensure iptables allows smtp traffic
+  lineinfile:
+    line: '-A INPUT -p tcp -m tcp --dport 25 -j ACCEPT'
+    dest: /etc/sysconfig/iptables
+  notify: restart iptables
+  when:
+    - postfix_inet_interfaces != 'localhost'
+    - ( ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6' ) or
+      ( ansible_distribution == 'RedHat' and ansible_distribution_major_version == '6' )
+  tags:
+    - postfix
+    - firewall

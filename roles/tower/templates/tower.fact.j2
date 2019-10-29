@@ -1,0 +1,7 @@
+#!/bin/bash
+
+INSTALLED_VERSION="{{ tower_version }}"
+SERVICE_STATUS="$(systemctl is-active nginx)"
+LICENSE_STATUS="$(awx-manage check_license)"
+
+echo "{ \"installed_version\" : \"${INSTALLED_VERSION}\" , \"service_status\" : \"${SERVICE_STATUS}\" , \"license_status\" : \"${LICENSE_STATUS}\" }"

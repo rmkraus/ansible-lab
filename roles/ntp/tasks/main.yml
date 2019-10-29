@@ -1,0 +1,57 @@
+---
+# tasks file for ntp
+
+- name: Autoselect chronyd
+  set_fact:
+    ntp_daemon: chronyd
+  when:
+    - ntp_daemon == ''
+    - ansible_distribution == 'Fedora' or
+      ( ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7' ) or
+      ( ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7' )
+  tags:
+    - ntp
+    - packages
+
+- name: Autoselect ntpd
+  set_fact:
+    ntp_daemon: ntpd
+  when:
+    - ntp_daemon == ''
+  tags:
+    - ntp
+    - packages
+
+- name: Load time daemon variables
+  include_vars: "{{ ntp_daemon }}_vars.yml"
+  tags:
+    - ntp
+    - packages
+
+- name: Ensure ntp daemon is installed
+  yum:
+    name: "{{ ntp_package }}"
+  tags:
+    - ntp
+    - packages
+
+- name: Ensure ntp daemon is configured
+  template:
+    src: ntp.config.j2
+    dest: "{{ ntp_config }}"
+    owner: "{{ ntp_config_owner }}"
+    group: "{{ ntp_config_group }}"
+    mode: "{{ ntp_config_mode }}"
+  notify: restart daemon
+  tags:
+    - ntp
+    - config
+
+- name: Ensure ntp daemon is running
+  service:
+    name: "{{ ntp_daemon }}"
+    state: started
+    enabled: yes
+  tags:
+    - ntp
+    - services

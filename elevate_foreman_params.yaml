@@ -1,0 +1,17 @@
+#!/usr/bin/ansible-playbook -e @secrets.yml -i hosts/foreman.py
+---
+
+- name: elevate the priority on some foreman_params
+  hosts: all
+  gather_facts: no
+  become: no
+
+  tasks:
+    - name: elevate the priority on some foreman_params
+      set_fact:
+        ansible_user: "{{ foreman_params['ansible_user'] | default(omit) }}"
+        ansible_host: "{{ foreman_params['ansible_host'] | default(omit) }}"
+        ansible_ssh_host: "{{ foreman_params['ansible_host'] | default(omit) }}"
+      check_mode: no
+      tags:
+        - always

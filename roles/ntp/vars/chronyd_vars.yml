@@ -1,0 +1,5 @@
+ntp_package: chrony
+ntp_config: /etc/chrony.conf
+ntp_config_mode: 644
+ntp_config_owner: root
+ntp_config_group: root

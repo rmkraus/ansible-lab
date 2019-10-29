@@ -1,0 +1,6 @@
+---
+# handlers file for ntp
+- name: restart daemon
+  service:
+    name: "{{ ntp_daemon }}"
+    state: restarted

@@ -1,0 +1,12 @@
+#!/usr/bin/ansible-playbook -e @secrets.yml -i hosts/foreman.py
+---
+
+- import_playbook: elevate_foreman_params.yaml
+
+- name: print vars
+  hosts: all
+  become: no
+
+  tasks:
+    - debug:
+        var: hostvars[inventory_hostname]

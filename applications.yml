@@ -1,0 +1,21 @@
+#!/usr/bin/ansible-playbook -e @secrets.yml -i hosts/foreman.py
+---
+
+- import_playbook: elevate_foreman_params.yaml
+
+- name: ansible tower servers
+  hosts: foreman_hostgroup_tower
+  become: yes
+  become_user: root
+  gather_facts: yes
+
+  roles:
+    - role: tower
+      tower_version: "{{ foreman_params['tower-version'] | default('3.5.3-1') }}"
+      tower_admin_password: "{{ foreman_params['tower-admin-password'] }}"
+      tower_pg_password: "{{ foreman_params['tower-pg-password'] }}"
+      tower_rabbitmq_password: "{{ foreman_params['tower-rabbitmq-password'] }}"
+      tower_s3_keys_bucket: "{{ aws_keys_bucket }}"
+      tower_s3_access_key: "{{ aws_access_key }}"
+      tower_s3_secret_key: "{{ aws_secret_key }}"
+      tower_custom_cert: "{{ foreman_params['tower-custom-cert'] | default ('false') | bool }}"

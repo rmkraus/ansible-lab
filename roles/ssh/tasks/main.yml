@@ -1,0 +1,52 @@
+---
+# tasks file for ssh
+- name: Ensure the ssh server is configured
+  lineinfile:
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    path: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: 0600
+  loop:
+    - line: "PermitRootLogin without-password"
+      regexp: "^#*\\s*PermitRootLogin"
+    - line: "MaxAuthTries 2"
+      regexp: "^#*\\s*MaxAuthTries"
+    - line: "MaxSessions 2"
+      regexp: "^#*\\s*MaxSessions"
+    - line: "AllowAgentForwarding no"
+      regexp: "^#*\\s*AllowAgentForwarding"
+    - line: "AllowTcpForwarding no"
+      regexp: "^#*\\s*AllowTcpForwarding"
+    - line: "X11Forwarding no"
+      regexp: "^#*\\s*X11Forwarding"
+    - line: "Banner /etc/issue.net"
+      regexp: "^#*\\s*Banner"
+  notify: restart service
+  tags:
+    - ssh
+    - config
+
+- name: Ensure SSH banner is set
+  template:
+    src: "issue.net.j2"
+    dest: /etc/issue.net
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - ssh
+    - config
+
+- name: Ensure terminal banner matches ssh banner
+  template:
+    src: "issue.net.j2"
+    dest: /etc/issue
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - ssh
+    - config
+

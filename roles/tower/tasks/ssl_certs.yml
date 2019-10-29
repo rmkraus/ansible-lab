@@ -1,0 +1,68 @@
+---
+# tasks file for tower
+
+- name: create local temp working directory
+  tempfile:
+    state: directory
+  when: tower_custom_cert | bool
+  delegate_to: localhost
+  become: no
+  register: tower_tmp_dir
+  check_mode: no
+  tags:
+    - tower
+    - ssl
+    - config
+
+- name: fetch custom ssl certificates from bucket
+  aws_s3:
+    aws_access_key: "{{ tower_s3_access_key }}"
+    aws_secret_key: "{{ tower_s3_secret_key }}"
+    bucket: "{{ tower_s3_keys_bucket }}"
+    object: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: get
+  loop:
+    - src: "{{ inventory_hostname }}/cert.pem"
+      dest: "{{ tower_tmp_dir.path }}/tower.cert"
+    - src: "{{ inventory_hostname }}/privkey.pem"
+      dest: "{{ tower_tmp_dir.path }}/tower.key"
+  when: tower_custom_cert | bool
+  delegate_to: localhost
+  become: no
+  check_mode: no
+  tags:
+    - tower
+    - ssl
+    - config
+
+- name: ensure custom ssl certificates are installed
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0640
+  loop:
+    - src: "{{ tower_tmp_dir.path }}/tower.cert"
+      dest: "/etc/tower/tower.cert"
+    - src: "{{ tower_tmp_dir.path }}/tower.key"
+      dest: "/etc/tower/tower.key"
+  when: tower_custom_cert | bool
+  notify: restart tower
+  tags:
+    - tower
+    - ssl
+    - config
+
+- name: remove temp working directory
+  file:
+    path: "{{ tower_tmp_dir.path }}"
+    state: absent
+  when: tower_custom_cert | bool
+  delegate_to: localhost
+  check_mode: no
+  tags:
+    - tower
+    - ssl
+    - config

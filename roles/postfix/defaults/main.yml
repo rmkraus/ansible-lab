@@ -1,0 +1,9 @@
+---
+# defaults file for postfix
+postfix_mynetworks:
+postfix_myorigin:
+postfix_inet_interfaces: localhost
+postfix_relayhost:
+postfix_smtp_sasl_auth_enable: no
+postfix_smtp_sasl_password_maps:
+postfix_sasl_entries: []

@@ -1,0 +1,4 @@
+---
+# defaults file for epel
+epel_exclude: ""
+epel_enabled: 1

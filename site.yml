@@ -1,0 +1,30 @@
+#!/usr/bin/ansible-playbook -e @secrets.yml -i hosts/foreman.py
+---
+
+- import_playbook: elevate_foreman_params.yaml
+
+- name: core configuration to all hosts
+  hosts: all:!foreman_hostcollection_appliances
+  become: yes
+  become_user: root
+
+  roles:
+    - common
+    - ansible-deps
+    - role: epel
+      epel_enabled: "{{ foreman_params['enable-epel'] }}"
+    - root-user
+    - role: ntp
+      ntp_servers:
+        - "{{ foreman_params['ntp-server'] }}"
+    - role: postfix
+      postfix_mynetworks: "{{ foreman_params['postfix_mynetworks'] }}"
+      postfix_myorigin: "{{ foreman_params['postfix_myorigin'] }}"
+      postfix_relayhost: "{{ foreman_params['postfix_relayhost'] }}"
+    - role: ssh
+      ssh_banner: "{{ foreman_params['ssh_banner'] }}"
+    - role: redhatinsights.insights-client
+      tags:
+        - redhatinsights.insights-client
+      when: ansible_distribution == 'RedHat'
+

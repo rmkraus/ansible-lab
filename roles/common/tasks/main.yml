@@ -1,0 +1,35 @@
+---
+# tasks file for common
+
+- name: ensure satellite tools repo is enabled on RHEL machines
+  rhsm_repository:
+    name: '*-satellite-tools-*-rpms'
+    state: enabled
+  when: foreman['foreman_subscription_status']|default(99) == 0
+  ignore_errors: True
+  register: common_repo_enable
+  tags:
+    - common
+    - packages
+    - repos
+
+- name: ensure katello is installed on RHEL machines
+  yum:
+    name: katello-host-tools
+    state: installed
+  when:
+    - foreman['foreman_subscription_status']|default(99) == 0
+    - not common_repo_enable is failed
+  tags:
+    - common
+    - packages
+
+- name: install qemu tools on virtual machines
+  yum:
+    name: qemu-guest-agent
+    state: installed
+  when: ansible_facts['product_name'] | default("none") == "RHEV Hypervisor"
+  tags:
+    - common
+    - packages
+

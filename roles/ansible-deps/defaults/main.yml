@@ -1,0 +1,3 @@
+---
+# defaults file for ansible-deps
+ansible_deps_artifacts: /var/local/ansible
