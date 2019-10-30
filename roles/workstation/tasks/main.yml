@@ -1,0 +1,21 @@
+---
+# tasks file for workstation
+
+- name: install packages for gui workstation
+  yum:
+    name: "@GNOME, git, podman, buildah, skopeo"
+    state: installed
+  tags:
+    - workstation
+    - packages
+
+
+- name: ensure graphical is the default target
+  file:
+    src: /lib/systemd/system/graphical.target
+    path: /etc/systemd/system/default.target
+    state: link
+  notify: reboot
+  tags:
+    - workstation
+    - config
