@@ -28,10 +28,30 @@
 - name: install packages for gui workstation
   yum:
     name: >
-      @GNOME, git, podman, buildah, skopeo, google-chrome-stable,
+      @GNOME, git, google-chrome-stable,
       gnome-tweak-tool, gnome-shell-extension-*, overpass-fonts,
-      overpass-mono-fonts, code, ansible, cmake, jq, tcpdump
+      code, cmake, jq, tcpdump
     state: installed
+  tags:
+    - workstation
+    - packages
+
+- name: install EL7 packages
+  yum:
+    name: >
+      xorg-x11-drv-*, chrome-gnome-shell, terminator, @Development tools,
+      python36-Cython
+    state: installed
+  tags:
+    - workstation
+    - packages
+
+- name: install EL8 packages
+  yum:
+    name: >
+      podman, buildah, skopeo, overpass-mono-fonts, ansible
+    state: installed
+  when: ansible_distribution_major_version == 8
   tags:
     - workstation
     - packages
