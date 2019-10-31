@@ -30,7 +30,7 @@
     name: >
       @GNOME, git, podman, buildah, skopeo, google-chrome-stable,
       gnome-tweak-tool, gnome-shell-extension-*, overpass-fonts,
-      overpass-mono-fonts, code, ansible
+      overpass-mono-fonts, code, ansible, cmake, jq, tcpdump
     state: installed
   tags:
     - workstation
