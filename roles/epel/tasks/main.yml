@@ -2,46 +2,45 @@
 # tasks file for epel
 
 - name: Autodetect EPEL URL
-  set_fact:
-    epel_url: http://download.fedoraproject.org/pub/epel/{{ ansible_distribution_major_version }}/{{ ansible_architecture }}
-    epel_gpg: Yes
-    epel_gpgkey: https://ewr.edge.kernel.org/fedora-buffet/epel/{{ ansible_distribution_major_version }}
-  when:
-    - ansible_distribution != 'Fedora'
+  epel_facts:
+    distribution: "{{ ansible_distribution }}"
+    major_version: "{{ ansible_distribution_major_version }}"
+    architecture: "{{ ansible_architecture }}"
+  delegate_to: localhost
+  register: epel_facts
   tags:
     - epel
     - repos
 
-- name: Fix EPEL URL on rpis
-  set_fact:
-    epel_url: https://armv7.dev.centos.org/repodir/epel-pass-1/
-    epel_gpg: No
-    epel_gpgkey: ""
-  when:
-    - ansible_architecture == "armv7l"
+- name: debug output (epel_facts)
+  debug:
+    var: epel_facts
+    verbosity: 1
   tags:
     - epel
     - repos
 
-- name: Ensure EPEL is configured
-  yum_repository:
-    name: epel
-    description: Extra Packages for Enterprise Linux
-    baseurl: "{{ epel_url }}"
-    gpgkey: "{{ epel_gpgkey }}"
-    enabled: "{{ epel_enabled | bool }}"
-    gpgcheck: "{{ epel_gpg }}"
-    exclude: "{{ epel_exclude }}"
-  when:
-    - ansible_distribution != 'Fedora'
-  tags:
-    - epel
-    - repos
+- name: Setup EPEL repo
+  when: epel_facts.has_epel | bool
+  block:
 
-- name: Import EPEL GPG key
-  rpm_key:
-    key: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
-    state: present
-  tags:
-    - epel
-    - repos
+    - name: Ensure EPEL is configured
+      yum_repository:
+        name: epel
+        description: Extra Packages for Enterprise Linux
+        baseurl: "{{ epel_facts.url }}"
+        gpgkey: "{{ epel_facts.gpg_url }}"
+        enabled: "{{ epel_enabled | bool }}"
+        gpgcheck: "{{ epel_facts.has_gpg | bool }}"
+        exclude: "{{ epel_exclude }}"
+      tags:
+        - epel
+        - repos
+
+    - name: Import EPEL GPG key
+      rpm_key:
+        key: "{{ epel_facts.gpg_url }}"
+        state: present
+      tags:
+        - epel
+        - repos

@@ -1,0 +1,8 @@
+{
+    "ANSIBLE_MODULE_ARGS": {
+        "distribution": "CentOS",
+        "major_version": 7,
+        "architecture": "aarch64"
+    }
+}
+

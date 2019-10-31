@@ -1,14 +1,49 @@
 ---
 # tasks file for workstation
 
+- name: Ensure Google Chrome repo is configured
+  yum_repository:
+    name: chrome
+    description: Google Chrome
+    baseurl: "http://dl.google.com/linux/chrome/rpm/stable/$basearch"
+    gpgkey: "https://dl-ssl.google.com/linux/linux_signing_key.pub"
+    enabled: True
+    gpgcheck: True
+  tags:
+    - workstation
+    - repos
+
+- name: Ensure VSCode repo is configured
+  yum_repository:
+    name: vscode
+    description: Microsoft Visual Studio Code
+    baseurl: https://packages.microsoft.com/yumrepos/vscode
+    gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+    enabled: True
+    gpgcheck: True
+  tags:
+    - workstation
+    - repos
+
 - name: install packages for gui workstation
   yum:
-    name: "@GNOME, git, podman, buildah, skopeo"
+    name: >
+      @GNOME, git, podman, buildah, skopeo, google-chrome-stable,
+      gnome-tweak-tool, gnome-shell-extension-*, overpass-fonts,
+      overpass-mono-fonts, code, ansible
     state: installed
   tags:
     - workstation
     - packages
 
+- name: remove unwanted packages
+  yum:
+    name: >
+      PackageKit-command-not-found
+    state: absent
+  tags:
+    - workstation
+    - packages
 
 - name: ensure graphical is the default target
   file:

@@ -12,7 +12,7 @@
     - common
     - ansible-deps
     - role: epel
-      epel_enabled: "{{ foreman_params['enable-epel'] }}"
+      epel_enabled: "{{ foreman_params['enable-epel'] | bool }}"
     - root-user
     - role: ntp
       ntp_servers:
