@@ -1,0 +1,10 @@
+---
+# tasks file for lock
+
+- name: run lock module
+  lock:
+    name: "{{ lock_name }}"
+    state: "{{ lock_state | default('acquired') }}"
+    permanent: "{{ lock_permanent | default(False) }}"
+  tags:
+    - lock
