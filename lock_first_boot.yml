@@ -1,0 +1,15 @@
+#!/usr/bin/ansible-playbook -e @secrets.yml -i hosts/foreman.py
+---
+
+- name: acquire the first boot lock - never to be released
+  hosts: "{{ chain_limit | default('all:!foreman_hostcollection_appliances') }}"
+  become: yes
+  become_user: root
+  gather_facts: no
+
+  roles:
+    - role: lock
+      lock_name: first_boot
+      lock_state: acquired
+      lock_permanent: Yes
+

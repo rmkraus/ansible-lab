@@ -1,0 +1,12 @@
+#!/usr/bin/ansible-playbook
+---
+
+- import_playbook: wait_for_hosts.yml
+
+- import_playbook: lock_first_boot.yml
+
+- import_playbook: site.yml
+
+- import_playbook: applications.yml
+
+...
