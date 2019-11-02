@@ -16,8 +16,8 @@
       tower_pg_password: "{{ foreman_params['tower-pg-password'] }}"
       tower_rabbitmq_password: "{{ foreman_params['tower-rabbitmq-password'] }}"
       tower_s3_keys_bucket: "{{ aws_keys_bucket }}"
-      tower_s3_access_key: "{{ aws_access_key }}"
-      tower_s3_secret_key: "{{ aws_secret_key }}"
+      tower_s3_access_key: "{{ aws_access_key | default(omit) }}"
+      tower_s3_secret_key: "{{ aws_secret_key | default(omit) }}"
       tower_custom_cert: "{{ foreman_params['tower-custom-cert'] | default ('false') | bool }}"
 
 - name: workstations

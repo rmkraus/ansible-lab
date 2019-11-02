@@ -16,8 +16,8 @@
 
 - name: fetch custom ssl certificates from bucket
   aws_s3:
-    aws_access_key: "{{ tower_s3_access_key }}"
-    aws_secret_key: "{{ tower_s3_secret_key }}"
+    aws_access_key: "{{ tower_s3_access_key | default(omit) }}"
+    aws_secret_key: "{{ tower_s3_secret_key | default(omit) }}"
     bucket: "{{ tower_s3_keys_bucket }}"
     object: "{{ item.src }}"
     dest: "{{ item.dest }}"

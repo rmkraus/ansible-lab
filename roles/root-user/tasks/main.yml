@@ -29,8 +29,8 @@
 
 - name: download root ssh public key
   aws_s3:
-    aws_access_key: "{{ root_user_s3_access_key }}"
-    aws_secret_key: "{{ root_user_s3_secret_key }}"
+    aws_access_key: "{{ root_user_s3_access_key | default(omit) }}"
+    aws_secret_key: "{{ root_user_s3_secret_key | default(omit) }}"
     bucket: "{{ root_user_s3_keys_bucket }}"
     object: "ssh/id_rsa.pub"
     dest: "{{ root_user_tmp.path }}"
