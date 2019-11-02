@@ -1,0 +1,7 @@
+---
+# handlers file for foreman_remote_execution
+
+- name: remove ssh key
+  file:
+    path: "{{ foreman_remote_execution_key_file.path }}"
+    state: absent

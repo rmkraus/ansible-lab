@@ -1,0 +1,30 @@
+---
+# tasks file for foreman_remote_execution
+
+- name: create temp file for ssh key
+  tempfile:
+    state: file
+  delegate_to: localhost
+  register: foreman_remote_execution_key_file
+  tags:
+    - foreman_remote_execution
+
+- name: write remote execution ssh key
+  copy:
+    content: "{{ foreman_params.remote_execution_ssh_keys }}"
+    dest: "{{ foreman_remote_execution_key_file.path }}"
+  delegate_to: localhost
+  notify: remove ssh key
+  tags:
+    - foreman_remote_execution
+
+- name: get foreman remote execution information
+  set_fact:
+    ansible_user: "{{ foreman_params.remote_execution_user | default('root') }}"
+    ansible_ssh_private_key_file: "{{ foreman_remote_execution_key_file.path }}"
+  tags:
+    - foreman_remote_execution
+
+- name: gather facts
+  setup:
+  when: foreman_remote_execution_gather_facts | bool

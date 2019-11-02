@@ -1,0 +1,3 @@
+---
+# defaults file for foreman_remote_execution
+foreman_remote_execution_gather_facts: yes
