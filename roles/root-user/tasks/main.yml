@@ -13,3 +13,58 @@
   tags:
     - root-user
     - config
+
+- name: create local temp working file
+  tempfile:
+    state: file
+  delegate_to: localhost
+  become: no
+  run_once: yes
+  register: root_user_tmp
+  check_mode: no
+  changed_when: False
+  tags:
+    - root-user
+    - config
+
+- name: download root ssh public key
+  aws_s3:
+    aws_access_key: "{{ root_user_s3_access_key }}"
+    aws_secret_key: "{{ root_user_s3_secret_key }}"
+    bucket: "{{ root_user_s3_keys_bucket }}"
+    object: "ssh/id_rsa.pub"
+    dest: "{{ root_user_tmp.path }}"
+    mode: get
+  delegate_to: localhost
+  become: no
+  run_once: yes
+  check_mode: no
+  changed_when: False
+  tags:
+    - root-user
+    - config
+
+- name: autorize root ssh key
+  lineinfile:
+    path: /root/.ssh/authorized_keys
+    line: "{{ lookup('file', root_user_tmp.path) }}"
+    create: yes
+    owner: root
+    group: root
+    mode: "0600"
+  tags:
+    - root-user
+    - config
+
+- name: cleanup temp file
+  file:
+    path: "{{ root_user_tmp.path }}"
+    state: absent
+  delegate_to: localhost
+  become: no
+  run_once: yes
+  check_mode: no
+  changed_when: False
+  tags:
+    - root-user
+    - config
