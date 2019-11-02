@@ -3,7 +3,7 @@
 - name: Ensure root has a configured profile
   template:
     src: "{{ item }}.j2"
-    dest: "/root/.ssh/.{{ item }}"
+    dest: "/root/.{{ item }}"
     owner: root
     group: root
     mode: 0600

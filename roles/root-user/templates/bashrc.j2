@@ -6,7 +6,7 @@ alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
 
-export PS1="\e[0;31m\\u@\h:\w # \e[m"
+export PS1="\[\033[31m\]\u@\h:\w # \[\033[0m\]"
 
 # Source global definitions
 if [ -f /etc/bashrc ]; then
