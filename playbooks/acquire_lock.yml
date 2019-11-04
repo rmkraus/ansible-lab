@@ -1,0 +1,16 @@
+#!/usr/bin/ansible-playbook
+---
+- name: apply a lock to machines
+  hosts: all
+  gather_facts: no
+  become: yes
+
+  vars_prompt:
+    - name: lock_name
+      prompt: Lock Name
+      type: string
+
+  roles:
+    - name: lock
+      lock_permanent: yes
+      lock_state: acquired

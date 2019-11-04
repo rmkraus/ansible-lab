@@ -1,0 +1,17 @@
+
+#!/usr/bin/ansible-playbook
+---
+- name: release a lock on machines
+  hosts: all
+  gather_facts: no
+  become: no
+
+  vars_prompt:
+    - name: lock_name
+      prompt: Lock Name
+      type: string
+
+  roles:
+    - name: lock
+      lock_permanent: yes
+      lock_state: released
