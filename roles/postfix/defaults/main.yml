@@ -4,6 +4,7 @@ postfix_mynetworks:
 postfix_myorigin:
 postfix_inet_interfaces: localhost
 postfix_relayhost:
-postfix_smtp_sasl_auth_enable: no
+postfix_sasl_auth_enable: no
 postfix_smtp_sasl_password_maps:
-postfix_sasl_entries: []
+postfix_sasl_server: ''
+postfix_sasl_auth: ''

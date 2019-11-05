@@ -12,7 +12,7 @@
   yum:
     name: cyrus-sasl,cyrus-sasl-plain,cyrus-sasl-md5
     state: installed
-  when: postfix_smtp_sasl_auth_enable | bool
+  when: postfix_sasl_auth_enable | bool
   tags:
     - postfix
     - packages
