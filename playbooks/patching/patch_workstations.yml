@@ -39,6 +39,13 @@
       - name: reboot the server
         reboot:
 
+    - include_role: 
+        name: lock
+      vars:
+        lock_name: patching
+        lock_state: released
+        lock_permanent: Yes
+
     - name: notify the end of patching
       shell: >
         nohup
