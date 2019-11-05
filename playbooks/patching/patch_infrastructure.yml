@@ -8,6 +8,13 @@
   any_errors_fatal: yes
 
   tasks:
+    - include_role: 
+        name: lock
+      vars:
+        lock_name: patching
+        lock_state: acquired
+        lock_permanent: Yes
+
     - name: check for updates
       yum:
         name: '*'
@@ -44,3 +51,10 @@
 
       - name: ensure dns is working
         shell: /usr/bin/dig +time=1 +tries=1 @localhost www.google.com
+
+    - include_role: 
+        name: lock
+      vars:
+        lock_name: patching
+        lock_state: released
+        lock_permanent: Yes
