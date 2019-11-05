@@ -31,29 +31,7 @@
           state: latest
       
       - name: reboot the server
-        reboot:
-
-      - pause:
-          seconds: 30
-
-      - name: check all services
-        service:
-          name: "{{ item }}"
-          state: running
-        loop:
-          - rabbitmq-server
-          - postgresql-9.6
-          - nginx
-
-      - name: canary GET request
-        uri:
-          url: https://localhost/
-          follow_redirects: yes
-          validate_certs: no
-        register: url_check
-        until: url_check is success
-        delay: 10
-        retries: 30
+        shell: nohup shutdown -r +5 &> /dev/null &
 
     - include_role: 
         name: lock
