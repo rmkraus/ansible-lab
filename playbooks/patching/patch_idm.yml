@@ -1,0 +1,50 @@
+#!/usr/bin/ansible-playbook
+---
+- name: patch idm servers
+  hosts: all
+  become: yes
+  gather_facts: no
+  serial: 1
+  any_errors_fatal: yes
+
+  tasks:
+    - include_role: 
+        name: lock
+      vars:
+        lock_name: patching
+        lock_state: acquired
+        lock_permanent: Yes
+
+    - name: check for updates
+      yum:
+        name: '*'
+        state: latest
+      check_mode: yes
+      register: yum_check
+
+    - name: patch the server
+      when: yum_check is changed
+      block:
+      - name: update all packages
+        yum:
+          name: '*'
+          state: latest
+      
+      - name: reboot the server
+        reboot:
+
+      - pause:
+          seconds: 30
+
+      - name: check all services
+        shell: ipactl status
+
+      - name: canary ldap search
+        shell: /bin/ldapsearch -x uid=$(logname)
+
+    - include_role: 
+        name: lock
+      vars:
+        lock_name: patching
+        lock_state: released
+        lock_permanent: Yes
