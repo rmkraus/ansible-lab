@@ -1,0 +1,32 @@
+#!/usr/bin/ansible-playbook
+---
+- name: generic server patching
+  hosts: all
+  become: yes
+  gather_facts: no
+  strategy: free
+
+  tasks:
+    - include_role: 
+        name: lock
+      vars:
+        lock_name: patching
+        lock_state: acquired
+        lock_permanent: Yes
+
+    - name: update all packages
+      yum:
+        name: '*'
+        state: latest
+      register: yum_update
+    
+    - name: reboot the server
+      reboot:
+      when: yum_update is changed
+
+    - include_role: 
+        name: lock
+      vars:
+        lock_name: patching
+        lock_state: released
+        lock_permanent: Yes
