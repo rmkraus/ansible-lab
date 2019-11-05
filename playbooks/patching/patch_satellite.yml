@@ -1,0 +1,55 @@
+#!/usr/bin/ansible-playbook
+---
+- name: patch satellite servers
+  hosts: all
+  become: yes
+  gather_facts: no
+  serial: 1
+  any_errors_fatal: yes
+
+  vars:
+    target: 6.6.z
+
+  tasks:
+    - include_role: 
+        name: lock
+      vars:
+        lock_name: patching
+        lock_state: acquired
+        lock_permanent: Yes
+
+    - name: check to ensure it is safe to update
+      shell: >
+        /bin/foreman-maintain upgrade check 
+        --assumeyes --whitelist disk-performance --target-version {{ target }}
+
+    - name: update all packages
+      shell: >
+        /bin/foreman-maintain upgrade run 
+        --assumeyes --whitelist disk-performance --target-version {{ target }}
+    
+    - name: reboot the server
+      reboot:
+
+    - pause:
+        seconds: 60
+
+    - name: check all services
+      shell: /bin/satellite-maintain service status -bf
+
+    - name: canary GET request
+      uri:
+        url: https://localhost/
+        follow_redirects: yes
+        validate_certs: no
+      register: url_check
+      until: url_check is success
+      delay: 10
+      retries: 30
+
+    - include_role: 
+        name: lock
+      vars:
+        lock_name: patching
+        lock_state: released
+        lock_permanent: Yes
