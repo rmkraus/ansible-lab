@@ -1,0 +1,48 @@
+#!/usr/bin/ansible-playbook
+---
+- name: patch linux workstation
+  hosts: all
+  become: yes
+  gather_facts: no
+  serial: 10%
+  any_errors_fatal: yes
+
+  tasks:
+    - name: notify active users of patching
+      shell: >
+        zenity --warning --timeout 30 --no-wrap --display=:0
+        --text="Patching will being in 30 seconds."
+      failed_when: False
+
+    - include_role: 
+        name: lock
+      vars:
+        lock_name: patching
+        lock_state: acquired
+        lock_permanent: Yes
+
+    - name: check for updates
+      yum:
+        name: '*'
+        state: latest
+      check_mode: yes
+      register: yum_check
+
+    - name: patch the server
+      when: yum_check is changed
+      block:
+      - name: update all packages
+        yum:
+          name: '*'
+          state: latest
+      
+      - name: reboot the server
+        reboot:
+
+    - name: notify the end of patching
+      shell: >
+        nohup
+        zenity --warning --timeout 30 --no-wrap --display=:0
+        --text="Updates are now complete."
+        &> /dev/null &
+      failed_when: False
