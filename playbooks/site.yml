@@ -22,8 +22,8 @@
       postfix_mynetworks: "{{ foreman_params['postfix_mynetworks'] }}"
       postfix_myorigin: "{{ foreman_params['postfix_myorigin'] }}"
       postfix_relayhost: "{{ foreman_params['postfix_relayhost'] }}"
-      postfix_inet_interfaces: "{{ foreman_params['postfix_inet_interfaces'] | default(omit) }}"
-      postfix_sasl_auth_enable: "{{ foreman_params['postfix_sasl_auth_enable'] | default(omit) }}"
+      postfix_inet_interfaces: "{{ foreman_params['postfix_inet_interfaces'] | default('127.0.0.1') }}"
+      postfix_sasl_auth_enable: "{{ foreman_params['postfix_sasl_auth_enable'] | default(False) }}"
       postfix_sasl_auth: "{{ foreman_params['postfix_sasl_auth'] | default(omit) }}"
       postfix_sasl_server: "{{ foreman_params['postfix_sasl_server'] | default(omit) }}"
     - role: ssh
