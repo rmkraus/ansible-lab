@@ -1,0 +1,39 @@
+---
+# tasks file for httpd
+
+- name: ensure packages are installed
+  yum:
+    name: httpd, mod_ssl
+    state: installed
+  tags:
+    - packages
+    - httpd
+
+- include_tasks: ssl_certs.yml
+
+- name: ensure secure ssl settings
+  lineinfile:
+    line: "{{ item.line }}"
+    regexp: "{{ item.re }}"
+    path: /etc/httpd/conf.d/ssl.conf
+  loop:
+    - line: SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1 
+      re: '#? ?SSLProtocol'
+    - line: SSLCipherSuite ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+      re: '#? ?SSLCipherSuite'
+  loop_control:
+    label: '{{ item.line }}'
+  notify: restart httpd
+  tags:
+    - config
+    - httpd
+
+- name: ensure httpd is running/enabled
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+  tags:
+    - services
+    - httpd
+  

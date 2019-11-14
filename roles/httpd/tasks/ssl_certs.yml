@@ -1,0 +1,108 @@
+---
+# tasks file for tower
+
+- name: create local temp working directory
+  tempfile:
+    state: directory
+  delegate_to: localhost
+  become: no
+  register: tmp_dir
+  check_mode: no
+  tags:
+    - httpd
+    - ssl
+    - config
+
+- name: fetch custom ssl certificates from bucket
+  aws_s3:
+    aws_access_key: "{{ httpd_s3_access_key | default(omit) }}"
+    aws_secret_key: "{{ httpd_s3_secret_key | default(omit) }}"
+    bucket: "{{ httpd_s3_keys_bucket }}"
+    object: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: get
+  loop:
+    - src: "{{ inventory_hostname }}/cert.pem"
+      dest: "{{ tmp_dir.path }}/cert.pem"
+    - src: "{{ inventory_hostname }}/privkey.pem"
+      dest: "{{ tmp_dir.path }}/privkey.pem"
+    - src: "{{ inventory_hostname }}/chain.pem"
+      dest: "{{ tmp_dir.path }}/chain.pem"
+  delegate_to: localhost
+  become: no
+  check_mode: no
+  ignore_errors: yes
+  register: cert_download
+  tags:
+    - httpd
+    - ssl
+    - config
+
+- name: ensure custom ssl certificates are installed
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0600
+    seuser: unconfined_u
+    setype: cert_t
+  loop:
+    - src: "{{ tmp_dir.path }}/cert.pem"
+      dest: "/etc/pki/tls/certs/cert.pem"
+    - src: "{{ tmp_dir.path }}/privkey.pem"
+      dest: "/etc/pki/tls/private/privkey.pem"
+    - src: "{{ tmp_dir.path }}/chain.pem"
+      dest: "/etc/pki/tls/certs/chain.pem"
+  when: cert_download is success
+  notify: restart httpd
+  tags:
+    - httpd
+    - ssl
+    - config
+
+- name: remove temp working directory
+  file:
+    path: "{{ tmp_dir.path }}"
+    state: absent
+  delegate_to: localhost
+  check_mode: no
+  tags:
+    - httpd
+    - ssl
+    - config
+
+- name: ensure apache is configured for custom certs
+  lineinfile:
+    line: "{{ item.line }}"
+    regexp: "{{ item.re }}"
+    path: /etc/httpd/conf.d/ssl.conf
+  loop:
+    - line: 'SSLCertificateFile /etc/pki/tls/certs/cert.pem'
+      re: '^#? ?SSLCertificateFile'
+    - line: 'SSLCertificateKeyFile /etc/pki/tls/private/privkey.pem'
+      re: '^#? ?SSLCertificateKeyFile'
+    - line: 'SSLCertificateChainFile /etc/pki/tls/certs/chain.pem'
+      re: '^#? ?SSLCertificateChainFile'
+  loop_control:
+    label: "{{ item.line }}"
+  when: cert_download is success
+  notify: restart httpd
+  tags:
+    - httpd
+    - ssl
+    - config
+
+- name: ensure firewall allows http traffic
+  firewalld:
+    service: "{{ item }}"
+    permanent: yes
+    immediate: yes
+    state: enabled
+  loop:
+    - http
+    - https
+  tags:
+    - httpd
+    - ssl
+    - config
