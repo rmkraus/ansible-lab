@@ -11,7 +11,7 @@
     target: 6.6.z
 
   tasks:
-    - include_role: 
+    - include_role:
         name: lock
       vars:
         lock_name: patching
@@ -20,14 +20,14 @@
 
     - name: check to ensure it is safe to update
       shell: >
-        /bin/foreman-maintain upgrade check 
+        /bin/foreman-maintain upgrade check
         --assumeyes --whitelist disk-performance --target-version {{ target }}
 
     - name: update all packages
       shell: >
-        /bin/foreman-maintain upgrade run 
+        /bin/foreman-maintain upgrade run
         --assumeyes --whitelist disk-performance --target-version {{ target }}
-    
+
     - name: reboot the server
       reboot:
 
@@ -36,6 +36,10 @@
 
     - name: check all services
       shell: /bin/satellite-maintain service status -bf
+      register: svc_check
+      until: svc_check is success
+      delay: 10
+      retries: 360
 
     - name: canary GET request
       uri:
@@ -47,7 +51,7 @@
       delay: 10
       retries: 30
 
-    - include_role: 
+    - include_role:
         name: lock
       vars:
         lock_name: patching
